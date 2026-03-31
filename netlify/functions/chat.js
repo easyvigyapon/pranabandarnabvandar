@@ -40,7 +40,7 @@ exports.handler = async (event) => {
             headers: { 
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': 'https://pranab-arnab-vandar.netlify.app',
+                'HTTP-Referer': 'https://easyvigyapon.github.io/pranabandarnabvandar',
                 'X-Title': 'Smart Grocery Assistant'
             },
             body: JSON.stringify(payload)
