@@ -1211,10 +1211,28 @@
 
     <!-- Scripts -->
     <script>
+        // Note: For GitHub pages, either hardcode the key here (not recommended for paid keys)
+        // or inject it via GitHub Actions during deployment by replacing this placeholder.
+        const apiKey = "OPENROUTER_API_KEY"; // Replace with your key during GitHub Actions build
+
         async function callAI(userQuery) {
-            // Fetching securely from the local Netlify Serverless Function
-            const url = `/.netlify/functions/chat`;
-            const payload = { query: userQuery };
+            const systemPrompt = `You are a shopping assistant for 'Pranab And Arnab Vandar', a grocery shop in Ajodhya. 
+            The user will tell you what they want to cook or what they need. 
+            Your task is to identify 5-8 essential ingredients available in a typical Indian grocery store like this one.
+            Important categories at the shop include: Daily Groceries (Rice, Dal, Oil, Tea, Sugar), Household Needs (Soaps, Detergent), 
+            Snacks, Spices (Turmeric, Cumin, Chilli), Cold Beverages, Fresh Roots (Potato, Onion, Ginger, Garlic), and Disposables.
+            Respond ONLY with a JSON object in this format: { "title": "List Name", "items": ["Item 1", "Item 2", ...] }. 
+            Do not include any other text or explanation. Note that your response should be valid JSON containing Bengali strings.`;
+
+            const url = `https://openrouter.ai/api/v1/chat/completions`;
+
+            const payload = {
+                model: "qwen/qwen3.6-plus-preview:free",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userQuery }
+                ]
+            };
 
             let delay = 1000;
             for (let i = 0; i < 5; i++) {
@@ -1222,7 +1240,10 @@
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`,
+                            'HTTP-Referer': window.location.href,
+                            'X-Title': 'Smart Grocery Assistant'
                         },
                         body: JSON.stringify(payload)
                     });
@@ -1231,7 +1252,6 @@
                     const result = await response.json();
 
                     let content = result.choices?.[0]?.message?.content;
-                    // Sometimes models wrap JSON in markdown blocks
                     if (content.startsWith('```json')) {
                         content = content.replace(/```json\\s*/, '').replace(/\\s*```$/, '');
                     } else if (content.startsWith('```')) {
